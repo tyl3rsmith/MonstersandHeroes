@@ -3,7 +3,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class MarketItems {
-    private List<Item> marketItems;
+    private final List<Item> marketItems;
 
     public MarketItems() {
         this.marketItems = new ArrayList<>();

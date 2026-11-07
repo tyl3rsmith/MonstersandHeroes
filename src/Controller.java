@@ -134,34 +134,7 @@ public class Controller {
     // ------------------------------------------------------------------
 
     private String[] displayHeroOptions(String filePath, String heroType, Set<String> selectedNames) {
-        List<String[]> availableHeroes = new ArrayList<>();
-
-        try (Scanner fileScanner = new Scanner(new File(filePath))) {
-            // Skip the header.
-            if (fileScanner.hasNextLine()) {
-                fileScanner.nextLine();
-            }
-
-            while (fileScanner.hasNextLine()) {
-                String line = fileScanner.nextLine().trim();
-
-                if (line.isEmpty()) {
-                    continue;
-                }
-
-                String[] attributes = line.split("\\s+");
-                String name = attributes[0].replace("_", " ");
-
-                // Skip heroes that have already been selected.
-                if (selectedNames.contains(name)) {
-                    continue;
-                }
-
-                availableHeroes.add(attributes);
-            }
-        } catch (FileNotFoundException e) {
-            throw new IllegalStateException("Could not find " + filePath, e);
-        }
+        List<String[]> availableHeroes = createAvailableHeroes(filePath, selectedNames);
 
         if (availableHeroes.isEmpty()) {
             System.out.println("No more available " + heroType + "s.");
@@ -190,6 +163,38 @@ public class Controller {
         int heroChoice = readInt(1, availableHeroes.size());
 
         return availableHeroes.get(heroChoice - 1);
+    }
+
+    private static List<String[]> createAvailableHeroes(String filePath, Set<String> selectedNames) {
+        List<String[]> availableHeroes = new ArrayList<>();
+
+        try (Scanner fileScanner = new Scanner(new File(filePath))) {
+            // Skip the header.
+            if (fileScanner.hasNextLine()) {
+                fileScanner.nextLine();
+            }
+
+            while (fileScanner.hasNextLine()) {
+                String line = fileScanner.nextLine().trim();
+
+                if (line.isEmpty()) {
+                    continue;
+                }
+
+                String[] attributes = line.split("\\s+");
+                String name = attributes[0].replace("_", " ");
+
+                // Skip heroes that have already been selected.
+                if (selectedNames.contains(name)) {
+                    continue;
+                }
+
+                availableHeroes.add(attributes);
+            }
+        } catch (FileNotFoundException e) {
+            throw new IllegalStateException("Could not find " + filePath, e);
+        }
+        return availableHeroes;
     }
 
     public Sorcerer displaySorcererOptions(Set<String> selectedNames) {
@@ -258,19 +263,12 @@ public class Controller {
 
             char heroChoice = readChoice("WSP", "Invalid choice. Enter W, S, or P:");
 
-            Hero selectedHero = null;
-
-            switch (heroChoice) {
-                case 'W':
-                    selectedHero = displayWarriorOptions(selectedNames);
-                    break;
-                case 'S':
-                    selectedHero = displaySorcererOptions(selectedNames);
-                    break;
-                case 'P':
-                    selectedHero = displayPaladinOptions(selectedNames);
-                    break;
-            }
+            Hero selectedHero = switch (heroChoice) {
+                case 'W' -> displayWarriorOptions(selectedNames);
+                case 'S' -> displaySorcererOptions(selectedNames);
+                case 'P' -> displayPaladinOptions(selectedNames);
+                default -> null;
+            };
 
             if (selectedHero != null) {
                 selectedHeroes.add(selectedHero);

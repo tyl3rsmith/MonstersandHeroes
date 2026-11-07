@@ -3,10 +3,10 @@ import java.util.List;
 import java.util.Random;
 
 public class Battle {
-    private MonsterGroup monsters;
-    private HeroGroup heroes;
-    private Controller console;
-    private Random rand = new Random();
+    private final MonsterGroup monsters;
+    private final HeroGroup heroes;
+    private final Controller console;
+    private final Random rand = new Random();
     private final int monsterLevel;
     private final int monsterCount;
     private final InventoryMenu inventoryMenu;
@@ -144,7 +144,11 @@ public class Battle {
 
 
     private boolean handleHeroAttack(Hero hero) {
-        Monster target = monsters.getMonsterByIndex(console.selectMonster(monsters));
+        int targetIndex = console.selectMonster(monsters);
+        if (targetIndex < 0) {
+            return false;
+        }
+        Monster target = monsters.getMonsterByIndex(targetIndex);
 
         if (monsterDodges(target)) {
             System.out.println(target.getName() + " dodged " + hero.getName() + "'s attack!");
@@ -185,7 +189,11 @@ public class Battle {
             return false;
         }
 
-        Monster target = monsters.getMonsterByIndex(console.selectMonster(monsters));
+        int targetIndex = console.selectMonster(monsters);
+        if (targetIndex < 0) {
+            return false;
+        }
+        Monster target = monsters.getMonsterByIndex(targetIndex);
 
         hero.spendMana(spell.getManaCost());
         hero.getBackpack().remove(spell); // spells are single-use
@@ -193,70 +201,11 @@ public class Battle {
         if (monsterDodges(target)) {
             System.out.println(target.getName() + " dodged " + hero.getName() + "'s " + spell.getName() + "!");
         } else {
-            int dealt = target.takeDamage(hero.calculateSpellDamage(spell));
-            System.out.println(hero.getName() + " cast " + spell.getName() + " on " + target.getName()
-                    + " for " + dealt + " damage!");
-            System.out.println(spell.applyEffect(target));
+            spell.cast(hero, target);
         }
         removeIfDefeated(target);
         return true;
     }
-
-    // first select a hero to use
-    // then select a potion from the heroes' inventory
-    // apply the potion effect to the specific hero attribute
-//    private boolean handleHeroPotionUse(Hero hero) {
-//        List<Potion> potions = hero.getBackpack().getItemsOfType(Potion.class);
-//        if (potions.isEmpty()) {
-//            System.out.println(hero.getName() + " has no potions.");
-//            return false;
-//        }
-//
-//        Potion potion = console.selectItem("Choose a potion to use:", potions);
-//        if (potion == null) {
-//            return false;
-//        }
-//
-//        hero.applyPotion(potion);
-//        hero.getBackpack().remove(potion); // single-use
-//        System.out.println(hero.getName() + " used " + potion.getName() + "!");
-//        return true;
-//    }
-//
-//    private boolean handleHeroEquipWeapon(Hero hero) {
-//        List<Weapon> weapons = hero.getBackpack().getItemsOfType(Weapon.class);
-//        if (weapons.isEmpty()) {
-//            System.out.println(hero.getName() + " has no weapons to equip.");
-//            return false;
-//        }
-//
-//        Weapon weapon = console.selectItem("Choose a weapon to equip:", weapons);
-//        if (weapon == null) {
-//            return false;
-//        }
-//
-//        boolean bothHands = weapon.getHandsRequired() == 2 || console.askYesNo("Hold it with both hands for extra strength?");
-//        hero.equipWeapon(weapon, bothHands);
-//        System.out.println(hero.getName() + " equipped " + weapon.getName() + "!");
-//        return true;
-//    }
-//
-//    private boolean handleHeroEquipArmor(Hero hero) {
-//        List<Armor> armors = hero.getBackpack().getItemsOfType(Armor.class);
-//        if (armors.isEmpty()) {
-//            System.out.println(hero.getName() + " has no armor to equip.");
-//            return false;
-//        }
-//
-//        Armor armor = console.selectItem("Choose armor to equip:", armors);
-//        if (armor == null) {
-//            return false;
-//        }
-//
-//        hero.equipArmor(armor);
-//        System.out.println(hero.getName() + " equipped " + armor.getName() + "!");
-//        return true;
-//    }
 
     private boolean handleHeroEquipWeapon(Hero hero) { return inventoryMenu.equipWeapon(hero); }
     private boolean handleHeroEquipArmor(Hero hero)  { return inventoryMenu.equipArmor(hero); }

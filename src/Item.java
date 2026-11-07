@@ -1,7 +1,7 @@
 public abstract class Item implements Buyable, Sellable {
-    private String name;
-    private double price;
-    private int level;
+    private final String name;
+    private final double price;
+    private final int level;
 
     public Item(String name, double price, int level) {
         this.name = name;

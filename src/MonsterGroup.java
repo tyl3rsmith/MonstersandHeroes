@@ -1,33 +1,13 @@
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.*;
 
 public class MonsterGroup {
-    private List<Monster> monsters;
-    private MonsterFactory monsterFactory;
+    private final List<Monster> monsters;
+    private final MonsterFactory monsterFactory;
     private int numMonsters;
 
     public MonsterGroup() {
         this.monsters = new ArrayList<>();
         this.monsterFactory = new MonsterFactory();
-    }
-
-    public MonsterGroup(List<Monster> monsters, MonsterFactory monsterFactory) {
-        if (monsterFactory == null && monsters == null) {
-            throw new IllegalArgumentException("Invalid constructor arguments provided");
-        }
-
-        this.monsters = monsters;
-        this.monsterFactory = monsterFactory;
-    }
-
-    public MonsterGroup clone() {
-        List<Monster> newMonsters = new ArrayList<>(monsters);
-        MonsterFactory monsterFactory = new MonsterFactory();
-
-        MonsterGroup newGroup = new MonsterGroup(newMonsters, monsterFactory);
-        newGroup.numMonsters = newMonsters.size();
-        return newGroup;
     }
 
     public int getNumMonsters() {

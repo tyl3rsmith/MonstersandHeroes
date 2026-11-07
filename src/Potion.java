@@ -1,3 +1,4 @@
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -18,11 +19,24 @@ public class Potion extends Item implements Useable {
     }
 
     public int getEffectAmount() { return effectAmount; }
-    public Set<HeroAttribute> getAttributes() { return attributes; }
+
+    public Set<HeroAttribute> getAttributes() {
+        return Collections.unmodifiableSet(attributes);
+    }
+
+    private String describeAttributes() {
+        StringBuilder sb = new StringBuilder();
+        for (HeroAttribute attr : attributes) {
+            if (!sb.isEmpty()) sb.append("/");
+            String name = attr.name();
+            sb.append(name.charAt(0)).append(name.substring(1).toLowerCase());
+        }
+        return sb.toString();
+    }
 
     @Override
     public String toString() {
-        return String.format("%s (Lv %d, +%d %s, %.0f gold)", getName(), getLevel(), effectAmount, attributes, getPrice());
+        return String.format("%s (Lv %d, +%d %s, %.0f gold)", getName(), getLevel(), effectAmount, describeAttributes(), getPrice());
     }
 
     @Override
@@ -32,6 +46,6 @@ public class Potion extends Item implements Useable {
 
     @Override
     public void use(Hero hero) {
-
+        hero.applyPotion(this);
     }
 }

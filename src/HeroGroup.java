@@ -38,9 +38,6 @@ public class HeroGroup {
         return heroes.size();
     }
 
-    public boolean removeHero(Hero hero) {
-        return heroes.remove(hero);
-    }
 
     public int getHighestLevelHero() {
         if (heroes.isEmpty()) {
@@ -97,23 +94,6 @@ public class HeroGroup {
             }
         }
         return res;
-    }
-
-//    public void reviveHeroes() {
-//        for (Hero hero : heroes) {
-//            if (hero.getHp() < hero.getLevel() * 100) {
-//                hero.heal((hero.getLevel() * 100) - hero.getHp());
-//            }
-//        }
-//    }
-
-    public void healHeroGroup(double percentage) {
-        if (percentage <= 0) {
-            throw new IllegalArgumentException("Invalid percentage");
-        }
-        for (Hero hero : heroes) {
-            hero.heal(percentage);
-        }
     }
 
     public void levelUpHeroes() {

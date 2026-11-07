@@ -21,16 +21,11 @@ public class MonsterFactory {
         if (level < 1) {
             throw new IllegalArgumentException("Level must be greater than or equal to 1");
         }
-        switch (type) {
-            case DRAGON:
-                return createDragon(level);
-            case EXOSKELETON:
-                return createExoskeleton(level);
-            case SPIRIT:
-                return createSpirit(level);
-            default:
-                throw new IllegalArgumentException("Invalid monster type.");
-        }
+        return switch (type) {
+            case DRAGON -> createDragon(level);
+            case EXOSKELETON -> createExoskeleton(level);
+            case SPIRIT -> createSpirit(level);
+        };
     }
 
     private Monster selectRandomMonster(List<? extends Monster> monsters, int level) {

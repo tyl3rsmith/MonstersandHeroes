@@ -22,7 +22,14 @@ public class Armor extends Gear implements Equipable {
 
     @Override
     public void equip(Hero hero) {
+        hero.equipArmor(this);
+    }
 
+    @Override
+    public void unequip(Hero hero) {
+        if (hero.getArmor() == this) {
+            hero.unequipArmor();
+        }
     }
 
     public int getDamageReduction() {

@@ -26,9 +26,12 @@ public class InventoryMenu {
             return false;
         }
 
-        boolean bothHands = weapon.getHandsRequired() == 2
-                || console.askYesNo("Hold it with both hands for extra strength?");
-        hero.equipWeapon(weapon, bothHands);
+        if (weapon.getHandsRequired() == 1 && console.askYesNo("Hold it with both hands for extra strength?")) {
+            hero.equipWeapon(weapon, true);
+        } else {
+            weapon.equip(hero); // default grip: two-handed weapons use both hands, one-handed use one
+        }
+
         System.out.println(hero.getName() + " equipped " + weapon.getName() + "!");
         return true;
     }
@@ -50,7 +53,7 @@ public class InventoryMenu {
             return false;
         }
 
-        hero.equipArmor(armor);
+        armor.equip(hero);
         System.out.println(hero.getName() + " equipped " + armor.getName() + "!");
         return true;
     }
@@ -67,7 +70,7 @@ public class InventoryMenu {
             return false;
         }
 
-        hero.applyPotion(potion);
+        potion.use(hero);
         hero.getBackpack().remove(potion); // single-use
         System.out.println(hero.getName() + " used " + potion.getName() + "!");
         return true;
@@ -75,20 +78,22 @@ public class InventoryMenu {
 
     // exploration only: gear must be unequipped before it can be sold
     public void unequipWeapon(Hero hero) {
-        if (hero.getWeapon() == Hero.FISTS) {
+        Weapon current = hero.getWeapon();
+        if (current == Hero.FISTS) {
             System.out.println(hero.getName() + " has no weapon equipped.");
             return;
         }
-        hero.unequipWeapon();
+        current.unequip(hero);
         System.out.println(hero.getName() + " put their weapon back in the backpack.");
     }
 
     public void unequipArmor(Hero hero) {
-        if (hero.getArmor() == null) {
+        Armor current = hero.getArmor();
+        if (current == null) {
             System.out.println(hero.getName() + " has no armor equipped.");
             return;
         }
-        hero.unequipArmor();
+        current.unequip(hero);
         System.out.println(hero.getName() + " took off their armor.");
     }
 }

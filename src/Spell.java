@@ -1,7 +1,7 @@
 public class Spell extends Item implements Castable {
-    private int damage;
-    private int manaCost;
-    private SpellType type;
+    private final int damage;
+    private final int manaCost;
+    private final SpellType type;
 
     public Spell(String name, double price, int level, int damage, int manaCost, SpellType type) {
         super(name, price, level);
@@ -11,6 +11,10 @@ public class Spell extends Item implements Castable {
         }
         if (manaCost < 0) {
             throw new IllegalArgumentException("mana cost must be positive");
+        }
+
+        if (type == null) {
+            throw new IllegalArgumentException("spell must have a type");
         }
 
         this.damage = damage;
@@ -25,31 +29,35 @@ public class Spell extends Item implements Castable {
 
     @Override
     public void cast(Hero hero, Monster monster) {
-
+        int dealt = monster.takeDamage(hero.calculateSpellDamage(this));
+        System.out.println(hero.getName() + " cast " + getName() + " on " + monster.getName() + " for " + dealt + " damage!");
+        System.out.println(applyEffect(monster));
     }
 
-    public double getManaCost() {
+    public int getManaCost() {
         return manaCost;
     }
 
 
     public String applyEffect(Monster target) {
-        switch (type) {
-            case ICE:
+        return switch (type) {
+            case ICE -> {
                 target.reduceBaseDamage(0.1);
-                return target.getName() + "'s damage was reduced!";
-            case FIRE:
+                yield target.getName() + "'s damage was reduced!";
+            }
+            case FIRE -> {
                 target.reduceDefense(0.1);
-                return target.getName() + "'s defense was reduced!";
-            case LIGHTNING:
+                yield target.getName() + "'s defense was reduced!";
+            }
+            case LIGHTNING -> {
                 target.reduceDodgeChance(0.1);
-                return target.getName() + " is slower to dodge!";
-            default:
-                return "";
-        }
+                yield target.getName() + " is slower to dodge!";
+            }
+            default -> "";
+        };
     }
 
-    public double getDamage() {
+    public int getDamage() {
         return damage;
     }
 

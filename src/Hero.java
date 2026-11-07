@@ -1,7 +1,7 @@
 import java.util.Random;
 
 public abstract class Hero {
-    private String name;
+    private final String name;
     private double mana;
     private double strength;
     private double agility;
@@ -9,7 +9,7 @@ public abstract class Hero {
     private double money;
     private int xp;
     private int level;
-    private Inventory backpack;
+    private final Inventory backpack;
     private int hp;
     private boolean isFainted;
     private boolean usingBothHands;
@@ -100,20 +100,6 @@ public abstract class Hero {
         this.strength = amount;
     }
 
-    public void setAgility(double amount) {
-        if (amount < 0) {
-            throw new IllegalArgumentException("agility cannot be negative");
-        }
-        this.agility = amount;
-    }
-
-    public void setDexterity(double amount) {
-        if (amount < 0) {
-            throw new IllegalArgumentException("dexterity cannot be negative");
-        }
-        this.dexterity = amount;
-    }
-
     public String getName() {
         return name;
     }
@@ -170,10 +156,6 @@ public abstract class Hero {
         this.xp += amount;
     }
 
-    public void addGold(int amount) {
-        this.money += amount;
-    }
-
     public double getAgility() {
         return agility;
     }
@@ -204,21 +186,6 @@ public abstract class Hero {
 
     public int getLevel() {
         return level;
-    }
-
-    public void updateLevel(int amount) {
-        if (amount < 0) {
-            throw new IllegalArgumentException("cannot update level by a negative amount");
-        }
-
-        this.level += amount;
-    }
-
-    public void setXp(int amount) {
-        if (amount < 0) {
-            throw new IllegalArgumentException("XP cannot be negative");
-        }
-        this.xp = amount;
     }
 
     public void addGold(double gold) {

@@ -1,11 +1,11 @@
 import java.util.*;
 
 public class MonstersandHeroes implements Game {
-    private HeroGroup heroes;
+    private final HeroGroup heroes;
     private MonsterGroup monsters;
     private Position currentPosition;
     private Grid map;
-    private Controller console;
+    private final Controller console;
     private boolean inBattle;
     private final double battleProbability;
     private static final Random rand = new Random();
@@ -63,9 +63,6 @@ public class MonstersandHeroes implements Game {
             map.displayGrid(currentPosition);
             handleInput(console.getKeyPress());
 
-            int row = currentPosition.getRow();
-            int col = currentPosition.getCol();
-
             if (map.getSpace(currentPosition).getSpaceType() == SpaceType.COMMON && !isInStartPosition()) {
                 // generate a battle with some probability
                 if (isInBattle()) {
@@ -75,8 +72,6 @@ public class MonstersandHeroes implements Game {
                 } else {
                     System.out.println("No monster's found here keep moving!");
                 }
-            } else if (map.getSpace(currentPosition).getSpaceType() == SpaceType.MARKET && !isInStartPosition()) {
-                // ask the user if they'd like to enter the market
             }
         }
     }

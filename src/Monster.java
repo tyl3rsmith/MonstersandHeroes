@@ -1,8 +1,8 @@
 import java.util.Random;
 
 public abstract class Monster {
-    private String name;
-    private int level;
+    private final String name;
+    private final int level;
     private int hp;
     private int baseDamage;
     private int defense;
@@ -46,14 +46,6 @@ public abstract class Monster {
 
     public String getName() {
         return name;
-    }
-
-    public void setHp(int amt) {
-        if (amt < 0) {
-            throw new IllegalArgumentException("hp cannot be negative");
-        }
-
-        this.hp = amt;
     }
 
     public static MonsterType getRandomMonsterType() {
