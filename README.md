@@ -634,7 +634,7 @@ The outcome of a buy, sell, or repair. Each value carries a message for the play
 
 ## How to compile and run
 1. Navigate to the directory containing the .java files after unzipping the project
-2. Move all .txt into a folder called data
+2. Move all .txt into a folder called data then put the data folder inside of a folder called src (should have zipped folder containing .class files and the src folder which contains a data folder with the .txt files)
 3. Compile all Java source files into the bin directory:
    javac *.java -d bin
 4. Run the program:
