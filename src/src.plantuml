@@ -1,0 +1,552 @@
+@startuml
+
+title __SRC's Class Diagram__\n
+
+    class Armor {
+        - damageReduction : int
+        + Armor()
+        + copy()
+        + equip()
+        + getDamageReduction()
+        + toString()
+        + unequip()
+    }
+
+    class Battle {
+        - monsterCount : int
+        - monsterLevel : int
+        - rand : Random
+        - showMap : Runnable
+        + Battle()
+        + awardRewards()
+        + endOfRound()
+        + heroesTurn()
+        + isHeroesFainted()
+        + isMonstersFainted()
+        + monsterTurn()
+        + reviveFaintedHeroes()
+        - displayStatistics()
+        - getLivingHeroes()
+        - handleHeroAttack()
+        - handleHeroEquipArmor()
+        - handleHeroEquipWeapon()
+        - handleHeroPotionUse()
+        - handleHeroSpellCast()
+        - isHeroFainted()
+        - isMonsterFainted()
+        - monsterDodges()
+        - quitGame()
+        - removeIfDefeated()
+        - takeHeroTurn()
+    }
+
+    interface Buyable {
+        {abstract} + getPrice()
+    }
+
+    interface Castable {
+        {abstract} + cast()
+    }
+
+    class Controller {
+        - scanner : Scanner
+        + askDimensions()
+        + askYesNo()
+        + displayMarketMenu()
+        + displayPaladinOptions()
+        + displaySorcererOptions()
+        + displayWarriorOptions()
+        + displayWelcome()
+        + getHeroBattleChoice()
+        + getHeroCount()
+        + getInventoryChoice()
+        + getKeyPress()
+        + quitGame()
+        + selectHero()
+        + selectHero()
+        + selectItem()
+        + selectItem()
+        + selectMonster()
+        + showGameOver()
+        + statistics()
+        {static} - createAvailableHeroes()
+        - displayHeroOptions()
+        - handleBuy()
+        - handleRepair()
+        - handleSell()
+        - readChar()
+        - readChoice()
+        - readInt()
+    }
+
+    enum Direction {
+      DOWN
+      LEFT
+      RIGHT
+      UP
+      colChange
+      rowChange
+    }
+
+    class Dragon {
+        + Dragon()
+    }
+
+    interface Equipable {
+        {abstract} + equip()
+        {abstract} + unequip()
+    }
+
+    class Exoskeleton {
+        + Exoskeleton()
+    }
+
+    interface Game {
+        {abstract} + end()
+        {abstract} + play()
+        {abstract} + start()
+    }
+
+    abstract class Gear {
+        {static} + DEFAULT_MAX_USES : int
+        - maxUses : int
+        - usesRemaining : int
+        + getMaxUses()
+        + getRepairCost()
+        + getUsesRemaining()
+        + isBroken()
+        + needsRepair()
+        + repair()
+        + use()
+        # Gear()
+        # Gear()
+        # describeUses()
+    }
+
+    class Grid {
+        - dim : int
+        - grid : Space[][]
+        - rand : Random
+        + Grid()
+        + displayGrid()
+        + getDim()
+        + getSpace()
+        + setSpace()
+        - initCommonSpaces()
+        - initGrid()
+        - initInaccessibleSpaces()
+        - initMarketSpaces()
+        - isGridConnected()
+        - isPositionValid()
+    }
+
+    abstract class Hero {
+        {static} ~ FISTS : Weapon
+        - agility : double
+        - dexterity : double
+        - hp : int
+        - isFainted : boolean
+        - level : int
+        - mana : double
+        - money : double
+        - name : String
+        {static} - rand : Random
+        - strength : double
+        - usingBothHands : boolean
+        - xp : int
+        + Hero()
+        + addGold()
+        + applyPotion()
+        + attemptToDodge()
+        + calculateAttackDamage()
+        + calculateSpellDamage()
+        + canLevelUp()
+        + equipArmor()
+        + equipWeapon()
+        + gainExperience()
+        + getAgility()
+        + getArmor()
+        + getBackpack()
+        + getBattleSummary()
+        + getDexterity()
+        {abstract} + getHeroType()
+        + getHp()
+        + getIsFainted()
+        + getLevel()
+        + getMana()
+        + getMoney()
+        + getName()
+        + getOverview()
+        + getStrength()
+        + getWeapon()
+        + getXp()
+        + heal()
+        + levelUp()
+        + setHp()
+        + setIsFainted()
+        + setLevel()
+        + setMana()
+        + setStrength()
+        + spendGold()
+        + spendMana()
+        + takeDamage()
+        + unequipArmor()
+        + unequipWeapon()
+        + wearDownArmor()
+        + wearDownWeapon()
+        + xpNeededForNextLevel()
+        - describeArmor()
+        - describeWeapon()
+    }
+
+    enum HeroAttribute {
+      AGILITY
+      DEFENSE
+      DEXTERITY
+      HEALTH
+      MANA
+      STRENGTH
+    }
+
+    class HeroGroup {
+        {static} + MAX_HERO_GROUP_SIZE : int
+        - heroes : List<Hero>
+        + HeroGroup()
+        + addHero()
+        + displayBattleInformation()
+        + displayHeroGroupInformation()
+        + getHeroByIndex()
+        + getHeroes()
+        + getHighestGold()
+        + getHighestLevelHero()
+        + getHighestMana()
+        + getHighestXP()
+        + getNumHeroes()
+        + levelUpHeroes()
+    }
+
+    enum HeroType {
+      PALADIN
+      SORCERER
+      WARRIOR
+    }
+
+    class Inventory {
+        - backpack : List<Item>
+        + Inventory()
+        + add()
+        + contains()
+        + get()
+        + getItemsOfType()
+        + remove()
+        + toString()
+    }
+
+    class InventoryMenu {
+        + InventoryMenu()
+        + equipArmor()
+        + equipWeapon()
+        + unequipArmor()
+        + unequipWeapon()
+        + usePotion()
+    }
+
+    abstract class Item {
+        - level : int
+        - name : String
+        - price : double
+        + Item()
+        {abstract} + copy()
+        + getLevel()
+        + getName()
+        + getPrice()
+        + getSellPrice()
+    }
+
+    class ItemFactory {
+        - armory : List<Armor>
+        - fireSpells : List<Spell>
+        - iceSpells : List<Spell>
+        - lightningSpells : List<Spell>
+        - potions : List<Potion>
+        - weapons : List<Weapon>
+        + ItemFactory()
+        + getAllItems()
+        + getArmory()
+        + getFireSpells()
+        + getIceSpells()
+        + getLightningSpells()
+        + getPotions()
+        + getWeapons()
+        - cleanName()
+        - loadArmory()
+        - loadItemData()
+        - loadPotions()
+        - loadSpells()
+        - loadWeapons()
+        - parseAttributes()
+    }
+
+    class Main {
+        ~ main()
+    }
+
+    class Market {
+        + Market()
+        + buyItem()
+        + getMarketItems()
+        + repairItem()
+        + sellItem()
+    }
+
+    class MarketFactory {
+        {static} - MAX_ITEMS : int
+        {static} - MIN_ITEMS : int
+        - pool : Deque<Item>
+        - rand : Random
+        + MarketFactory()
+        + createMarket()
+        - containsName()
+        - refillPool()
+    }
+
+    class MarketItems {
+        - marketItems : List<Item>
+        + MarketItems()
+        + addItem()
+        + contains()
+        + getInventory()
+        + removeItem()
+    }
+
+    abstract class Monster {
+        - baseDamage : int
+        - defense : int
+        - dodgeChance : double
+        - hp : int
+        - level : int
+        - name : String
+        + Monster()
+        + getBaseDamage()
+        + getDefense()
+        + getDodgeChance()
+        + getHp()
+        + getLevel()
+        + getName()
+        {static} + getRandomMonsterType()
+        + reduceBaseDamage()
+        + reduceDefense()
+        + reduceDodgeChance()
+        + takeDamage()
+    }
+
+    class MonsterFactory {
+        - dragons : List<Dragon>
+        - exoskeletons : List<Exoskeleton>
+        - rand : Random
+        - spirits : List<Spirit>
+        + MonsterFactory()
+        + createRandomMonster()
+        - calculateMonsterHP()
+        - createDragon()
+        - createExoskeleton()
+        - createSpirit()
+        - loadDragons()
+        - loadExoskeletons()
+        - loadMonsterData()
+        - loadSpirits()
+        - selectRandomMonster()
+    }
+
+    class MonsterGroup {
+        - monsters : List<Monster>
+        - numMonsters : int
+        + MonsterGroup()
+        + addMonster()
+        + createRandomMonsterGroup()
+        + displayMonsterGroupInformation()
+        + getMonsterByIndex()
+        + getMonsters()
+        + getNumMonsters()
+        + removeMonster()
+    }
+
+    enum MonsterType {
+      DRAGON
+      EXOSKELETON
+      SPIRIT
+    }
+
+    class MonstersandHeroes {
+        - battleProbability : double
+        - inBattle : boolean
+        - markets : Map<String, Market>
+        {static} - rand : Random
+        + MonstersandHeroes()
+        + end()
+        + enterMarket()
+        + isInBattle()
+        + play()
+        + start()
+        - getMarketAtCurrentPosition()
+        - handleInput()
+        - isInStartPosition()
+        - manageInventory()
+        - move()
+        - startBattle()
+    }
+
+    class Paladin {
+        + Paladin()
+        + getHeroType()
+    }
+
+    class Position {
+        - col : int
+        - row : int
+        + Position()
+        + Position()
+        + getCol()
+        + getRow()
+    }
+
+    class Potion {
+        - attributes : Set<HeroAttribute>
+        - effectAmount : int
+        + Potion()
+        + copy()
+        + getAttributes()
+        + getEffectAmount()
+        + toString()
+        + use()
+        - describeAttributes()
+    }
+
+    interface Repairable {
+        {abstract} + getRepairCost()
+        {abstract} + needsRepair()
+        {abstract} + repair()
+    }
+
+    interface Sellable {
+        {abstract} + getSellPrice()
+    }
+
+    class Sorcerer {
+        {static} + heroType : HeroType
+        + Sorcerer()
+        + getHeroType()
+    }
+
+    class Space {
+        + Space()
+        + getSpaceType()
+    }
+
+    enum SpaceType {
+      COMMON
+      INACCESSIBLE
+      MARKET
+      accessible
+    }
+
+    class Spell {
+        - damage : int
+        - manaCost : int
+        + Spell()
+        + applyEffect()
+        + cast()
+        + copy()
+        + getDamage()
+        + getManaCost()
+        + toString()
+    }
+
+    enum SpellType {
+      FIRE
+      ICE
+      LIGHTNING
+    }
+
+    class Spirit {
+        + Spirit()
+    }
+
+    enum TransactionResult {
+      ALREADY_FULL
+      LEVEL_TOO_LOW
+      NOT_ENOUGH_GOLD
+      NOT_IN_STOCK
+      NOT_OWNED
+      NOT_REPAIRABLE
+      SUCCESS
+      message
+    }
+
+    interface Useable {
+        {abstract} + use()
+    }
+
+    class Warrior {
+        {static} + heroType : HeroType
+        + Warrior()
+        + getHeroType()
+    }
+
+    class Weapon {
+        - damage : int
+        - handsRequired : int
+        + Weapon()
+        + copy()
+        + equip()
+        + getHandsRequired()
+        + getWeaponDamage()
+        + toString()
+        + unequip()
+    }
+
+  Armor .up.|> Equipable
+  Armor -up-|> Gear
+  Battle o-- Controller : console
+  Battle o-- HeroGroup : heroes
+  Battle o-- InventoryMenu : inventoryMenu
+  Battle o-- MonsterGroup : monsters
+  Dragon -up-|> Monster
+  Exoskeleton -up-|> Monster
+  Gear .up.|> Repairable
+  Gear -up-|> Item
+  Hero o-- Armor : armor
+  Hero o-- Inventory : backpack
+  Hero o-- Weapon : weapon
+  InventoryMenu o-- Controller : console
+  Item .up.|> Buyable
+  Item .up.|> Sellable
+  Market o-- MarketItems : inventory
+  MarketFactory o-- ItemFactory : itemFactory
+  MonsterGroup o-- MonsterFactory : monsterFactory
+  MonstersandHeroes .up.|> Game
+  MonstersandHeroes o-- Controller : console
+  MonstersandHeroes o-- Position : currentPosition
+  MonstersandHeroes o-- HeroGroup : heroes
+  MonstersandHeroes o-- InventoryMenu : inventoryMenu
+  MonstersandHeroes o-- ItemFactory : itemFactory
+  MonstersandHeroes o-- Grid : map
+  MonstersandHeroes o-- MarketFactory : marketFactory
+  MonstersandHeroes o-- MonsterGroup : monsters
+  Paladin -up-|> Hero
+  Paladin o-- HeroType : heroType
+  Potion .up.|> Useable
+  Potion -up-|> Item
+  Sorcerer -up-|> Hero
+  Space o-- SpaceType : spaceType
+  Spell .up.|> Castable
+  Spell -up-|> Item
+  Spell o-- SpellType : type
+  Spirit -up-|> Monster
+  Warrior -up-|> Hero
+  Weapon .up.|> Buyable
+  Weapon .up.|> Equipable
+  Weapon .up.|> Sellable
+  Weapon -up-|> Gear
+
+@enduml
