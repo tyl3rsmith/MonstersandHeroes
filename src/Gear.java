@@ -1,5 +1,10 @@
+/**
+ * Represents equipment that can be used by a hero, such as weapons and armor
+ * Gear has a limited number of uses and can be repaired when it wears down
+ */
+
 public abstract class Gear extends Item implements Repairable {
-    public static final int DEFAULT_MAX_USES = 10;
+    public static final int DEFAULT_MAX_USES = 10; // eventually could extend to allow items to define their own usage amount
 
     private final int maxUses;
     private int usesRemaining;
@@ -17,7 +22,7 @@ public abstract class Gear extends Item implements Repairable {
         this.usesRemaining = maxUses;
     }
 
-    public void use() {
+    public void use() { // each use reduces durability by 1, the battle will determine which uses actually count
         if (usesRemaining > 0) {
             usesRemaining--;
         }
@@ -27,8 +32,13 @@ public abstract class Gear extends Item implements Repairable {
         return usesRemaining == 0;
     }
 
-    public int getUsesRemaining() { return usesRemaining; }
-    public int getMaxUses() { return maxUses; }
+    public int getUsesRemaining() {
+        return usesRemaining;
+    }
+
+    public int getMaxUses() {
+        return maxUses;
+    }
 
     @Override
     public boolean needsRepair() {
@@ -37,12 +47,12 @@ public abstract class Gear extends Item implements Repairable {
 
     @Override
     public double getRepairCost() {
-        return getPrice() / 2; // spec: repair costs half the purchase price
+        return getPrice() / 2; // repair costs half the purchase price
     }
 
     @Override
     public void repair() {
-        usesRemaining = maxUses;
+        usesRemaining = maxUses; // after repair the item is as good as new so reset uses
     }
 
     protected String describeUses() {

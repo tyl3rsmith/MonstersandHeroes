@@ -1,5 +1,12 @@
 import java.util.List;
 
+/**
+ * InventoryMenu
+ * manages the inventory menu behavior
+ * heroes can equip/unequip armor, weapons, etc
+ * heroes can use Useable items such as potions as well
+ */
+
 public class InventoryMenu {
     private final Controller console;
 
@@ -76,7 +83,6 @@ public class InventoryMenu {
         return true;
     }
 
-    // exploration only: gear must be unequipped before it can be sold
     public void unequipWeapon(Hero hero) {
         Weapon current = hero.getWeapon();
         if (current == Hero.FISTS) {

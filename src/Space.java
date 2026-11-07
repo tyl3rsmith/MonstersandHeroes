@@ -1,3 +1,8 @@
+/**
+ * Space
+ * Abstracts the type of Space on the Map
+ */
+
 public class Space {
     private final SpaceType spaceType;
 

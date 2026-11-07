@@ -1,4 +1,17 @@
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
+/**
+ * Monsters and Heroes
+ * Main game class implementing the Game Interface
+ * Combines all components to manage the state of the game such as:
+ * Moving around the map
+ * Generating battles with some probability
+ * Checking if the game is over
+ * Allowing heroes to enter a market if they're on a market tile.
+ */
 
 public class MonstersandHeroes implements Game {
     private final HeroGroup heroes;
@@ -8,51 +21,49 @@ public class MonstersandHeroes implements Game {
     private final Controller console;
     private boolean inBattle;
     private final double battleProbability;
+
     private static final Random rand = new Random();
-    private final ItemFactory itemFactory = new ItemFactory();          // loads the files once
+
+    private final ItemFactory itemFactory = new ItemFactory();
     private final MarketFactory marketFactory = new MarketFactory(itemFactory);
     private final Map<String, Market> markets = new HashMap<>();
     private final InventoryMenu inventoryMenu;
 
-
     public MonstersandHeroes(double battleProbability) {
         if (battleProbability < 0.0 || battleProbability > 1.0) {
-            throw new IllegalArgumentException("Probability must be between 0.0 and 1.0");
+            throw new IllegalArgumentException("Probability must be between 0.0 and 1.0.");
         }
 
         this.currentPosition = new Position(0, 0);
         this.heroes = new HeroGroup();
         this.monsters = new MonsterGroup();
-        this.console = new Controller();
+        this.console = new Controller(new HeroFactory());
         this.inventoryMenu = new InventoryMenu(console);
         this.inBattle = false;
         this.battleProbability = battleProbability;
     }
 
     public boolean isInBattle() {
-        // probability of a battle occurring is battleProbability
-        // a battle does not occur with probability 1 - battleProbability
         return rand.nextDouble() < battleProbability;
     }
 
     @Override
     public void start() {
-        // welcome message
+        // Welcome message
         console.displayWelcome();
 
-        // gather number of heroes and the hero choices from the user
+        // Gather the number of heroes and their selections
         int numHeroes = console.getHeroCount();
         List<Hero> heroList = console.selectHero(numHeroes);
 
-        // load hero party into HeroGroup
+        // Load the selected heroes into the party
         for (Hero hero : heroList) {
-            this.heroes.addHero(hero);
+            heroes.addHero(hero);
         }
 
-        // get the map size and generate the map
+        // Get the map size and generate the map
         int dim = console.askDimensions();
         map = new Grid(dim);
-
     }
 
     @Override
@@ -63,14 +74,21 @@ public class MonstersandHeroes implements Game {
             map.displayGrid(currentPosition);
             handleInput(console.getKeyPress());
 
-            if (map.getSpace(currentPosition).getSpaceType() == SpaceType.COMMON && !isInStartPosition()) {
-                // generate a battle with some probability
+            if (map.getSpace(currentPosition).getSpaceType() == SpaceType.COMMON
+                    && !isInStartPosition()) {
+
+                // Generate a battle with the configured probability
                 if (isInBattle()) {
-                    System.out.println("You've encountered monsters starting a battle");
-                    this.inBattle = true;
+                    System.out.println(
+                            "You've encountered monsters! Starting a battle..."
+                    );
+
+                    inBattle = true;
                     startBattle();
                 } else {
-                    System.out.println("No monster's found here keep moving!");
+                    System.out.println(
+                            "No monsters found here. Keep moving!"
+                    );
                 }
             }
         }
@@ -78,10 +96,11 @@ public class MonstersandHeroes implements Game {
 
     @Override
     public void end() {
-        console.quitGame(heroes);
+        console.quitGameText(heroes);
         System.exit(0);
     }
 
+    // Main choices for a user to take at each iteration
     private void handleInput(char input) {
         switch (Character.toUpperCase(input)) {
             case 'W' -> move(Direction.UP);
@@ -96,34 +115,46 @@ public class MonstersandHeroes implements Game {
         }
     }
 
+    // starts the battle betwene the monsters and heroes
     private void startBattle() {
         monsters = monsters.createRandomMonsterGroup(heroes);
-        Battle battle = new Battle(monsters, heroes, () -> map.displayGrid(currentPosition)); // callback provided so we can use it inside battle class
+
+        Battle battle = new Battle(
+                monsters,
+                heroes,
+                console,
+                () -> map.displayGrid(currentPosition)
+        );
+
         monsters.displayMonsterGroupInformation();
         inBattle = true;
 
         while (inBattle) {
-            battle.heroesTurn();                 // every living hero acts
+            battle.heroesTurn();
 
-            if (battle.isMonstersFainted()) {    // check before monsters get a turn
+            // Check whether all monsters have fainted
+            if (battle.isMonstersFainted()) {
                 break;
             }
 
-            battle.monsterTurn();                // every monster acts
+            battle.monsterTurn();
 
+            // Check whether all heroes have fainted
             if (battle.isHeroesFainted()) {
                 break;
             }
 
-            battle.endOfRound();                 // regen for living heroes only
+            // Regenerate HP and mana for living heroes
+            battle.endOfRound();
         }
 
         inBattle = false;
 
         if (battle.isMonstersFainted()) {
             System.out.println("Heroes have won the battle!");
-            battle.awardRewards();               // gold + XP, living heroes only
-            battle.reviveFaintedHeroes();        // after rewards, so fainted heroes get none
+
+            battle.awardRewards();
+            battle.reviveFaintedHeroes();
             heroes.levelUpHeroes();
         } else {
             console.showGameOver(heroes);
@@ -132,31 +163,31 @@ public class MonstersandHeroes implements Game {
     }
 
     private void move(Direction direction) {
-
-        // Calculate the destination coordinates.
+        // Calculate the destination coordinates
         int newRow = currentPosition.getRow() + direction.getRowChange();
         int newCol = currentPosition.getCol() + direction.getColChange();
 
-        // Check whether the destination is within the grid.
-        if (newRow < 0 || newRow >= map.getDim() || newCol < 0 || newCol >= map.getDim()) {
+        // Check whether the destination is within the grid
+        if (newRow < 0 || newRow >= map.getDim()
+                || newCol < 0 || newCol >= map.getDim()) {
 
             System.out.println("You cannot move outside the grid!");
             return;
         }
 
-        // Create the destination position after validating the boundaries.
+        // Create the destination position after validating boundaries
         Position newPosition = new Position(newRow, newCol);
 
-        // Retrieve the destination space.
+        // Retrieve the destination space
         Space destination = map.getSpace(newPosition);
 
-        // Check whether the destination is accessible.
+        // Check whether the destination is accessible
         if (!destination.getSpaceType().isAccessible()) {
             System.out.println("You cannot move into an inaccessible space!");
             return;
         }
 
-        // Movement is valid, so update the party's position.
+        // Update the party's position
         currentPosition = newPosition;
 
         System.out.println("You moved successfully!");
@@ -164,46 +195,75 @@ public class MonstersandHeroes implements Game {
 
     private Market getMarketAtCurrentPosition() {
         String key = currentPosition.getRow() + "," + currentPosition.getCol();
-        return markets.computeIfAbsent(key, k -> marketFactory.createMarket());
+
+        return markets.computeIfAbsent(
+                key,
+                k -> marketFactory.createMarket()
+        );
     }
 
     public void enterMarket() {
         if (map.getSpace(currentPosition).getSpaceType() != SpaceType.MARKET) {
-            System.out.println("You must be on a market space to enter the market!");
+            System.out.println(
+                    "You must be on a market space to enter the market!"
+            );
             return;
         }
 
-        // same market every visit to this tile, created the first time it's entered
+        // Same market every visit to this tile
         Market market = getMarketAtCurrentPosition();
 
-        // heroes shop one at a time; each has their own gold and inventory
+        // Heroes shop one at a time
         for (Hero customer : heroes.getHeroes()) {
             console.displayMarketMenu(customer, market);
-
         }
     }
 
     private boolean isInStartPosition() {
-        return currentPosition.getRow() == 0 && currentPosition.getCol() == 0;
+        return currentPosition.getRow() == 0
+                && currentPosition.getCol() == 0;
     }
 
     private void manageInventory() {
-        // skip the hero prompt when there's only one hero
-        int index = heroes.getNumHeroes() == 1 ? 0 : console.selectHero(heroes);
+        // Skip the hero prompt when there is only one hero
+        int index = heroes.getNumHeroes() == 1
+                ? 0
+                : console.selectHero(heroes);
+
         Hero hero = heroes.getHeroByIndex(index);
 
         boolean open = true;
+
         while (open) {
             switch (console.getInventoryChoice(hero)) {
-                case 'W': inventoryMenu.equipWeapon(hero); break;
-                case 'E': inventoryMenu.equipArmor(hero); break;
-                case 'P': inventoryMenu.usePotion(hero); break;
-                case 'U': inventoryMenu.unequipWeapon(hero); break;
-                case 'R': inventoryMenu.unequipArmor(hero); break;
-                case 'V': System.out.println(hero.getBackpack()); break;
-                case 'B': open = false; break;
+                case 'W':
+                    inventoryMenu.equipWeapon(hero);
+                    break;
+
+                case 'E':
+                    inventoryMenu.equipArmor(hero);
+                    break;
+
+                case 'P':
+                    inventoryMenu.usePotion(hero);
+                    break;
+
+                case 'U':
+                    inventoryMenu.unequipWeapon(hero);
+                    break;
+
+                case 'R':
+                    inventoryMenu.unequipArmor(hero);
+                    break;
+
+                case 'V':
+                    System.out.println(hero.getBackpack());
+                    break;
+
+                case 'B':
+                    open = false;
+                    break;
             }
         }
     }
-
 }

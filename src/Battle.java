@@ -2,6 +2,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * Manages battles between a group of heroes and a group of monsters.
+ * Handles turn-based combat, including hero actions, monster attacks,
+ * damage calculations, dodging, and determining the outcome of the battle.
+ * Also manages battle rewards and the consequences of victory or defeat.
+ */
+
 public class Battle {
     private final MonsterGroup monsters;
     private final HeroGroup heroes;
@@ -10,19 +17,23 @@ public class Battle {
     private final int monsterLevel;
     private final int monsterCount;
     private final InventoryMenu inventoryMenu;
-    private final Runnable showMap; // using this to pass along the display map function
+    private final Runnable showMap; // using this to pass along the display map function so we can display without knowing how to
 
 
-    public Battle(MonsterGroup monsters, HeroGroup heroes, Runnable showMap) {
+    public Battle(MonsterGroup monsters, HeroGroup heroes, Controller console, Runnable showMap) {
         this.monsters = monsters;
         this.heroes = heroes;
-        this.console = new Controller();
+        this.console = console;
+
+        // saving these now since the group empties as monsters die
         this.monsterLevel = heroes.getHighestLevelHero(); // monster level = highest hero level
         this.monsterCount = monsters.getNumMonsters();
+
         this.inventoryMenu = new InventoryMenu(console);
         this.showMap = showMap;
     }
 
+    // fainted heroes stay in the party, so we filter them out whenever someone needs to act
     private List<Hero> getLivingHeroes() {
         List<Hero> alive = new ArrayList<>();
         for (Hero hero : heroes.getHeroes()) {
@@ -37,6 +48,8 @@ public class Battle {
         return getLivingHeroes().isEmpty();
     }
 
+
+    // flag used to mark heroes as fainted when they hit 0 hp
     private boolean isHeroFainted(Hero hero) {
         if (hero.getHp() == 0) {
             hero.setIsFainted(true);
@@ -53,6 +66,7 @@ public class Battle {
         return monsters.getNumMonsters() == 0;
     }
 
+    // after heroes win, fainted heroes come back with half hp and mana (and no rewards)
     public void reviveFaintedHeroes() {
         for (Hero hero : heroes.getHeroes()) {
             if (hero.getIsFainted()) {
@@ -63,6 +77,7 @@ public class Battle {
         }
     }
 
+    // living heroes regain 10% hp and mana each round
     public void endOfRound() {
         for (Hero hero : getLivingHeroes()) {
             hero.heal(0.1);
@@ -81,6 +96,7 @@ public class Battle {
         }
     }
 
+    // battles happen in turns each hero as long as there alive acts separately
     public void heroesTurn() {
         for (Hero hero : getLivingHeroes()) {
             if (isMonstersFainted()) {
@@ -90,6 +106,7 @@ public class Battle {
         }
     }
 
+    // prompts the hero to perform some action until they utilize the turn (i.e. failing to equip armor doesn't consume a turn)
     private void takeHeroTurn(Hero hero) {
         boolean turnUsed = false;
         while (!turnUsed) {
@@ -108,6 +125,7 @@ public class Battle {
         }
     }
 
+    // each monster randomly selects a non-fainted hero to attack
     public void monsterTurn() {
         for (int i = 0; i < monsters.getNumMonsters(); i++) {
             List<Hero> alive = getLivingHeroes();
@@ -123,9 +141,10 @@ public class Battle {
                 continue;
             }
 
-            int dealt = target.takeDamage((int) (monster.getBaseDamage() * 0.5)); // monsters do a lot of damage gonna reduce by half
+            int dealt = target.takeDamage((int) (monster.getBaseDamage() * 0.5)); // monsters do a lot of damage gonna reduce by half maybe should tweak more
             System.out.println(monster.getName() + " attacked " + target.getName() + " for " + dealt + " damage!");
 
+            // armor only wears down when a hit actually lands
             Armor brokenArmor = target.wearDownArmor();
             if (brokenArmor != null) {
                 System.out.println(target.getName() + "'s " + brokenArmor.getName() + " broke!");
@@ -143,6 +162,7 @@ public class Battle {
     }
 
 
+    // handles logic for attacking a monster and returns true if the hero didn't back out of their turn
     private boolean handleHeroAttack(Hero hero) {
         int targetIndex = console.selectMonster(monsters);
         if (targetIndex < 0) {
@@ -150,13 +170,14 @@ public class Battle {
         }
         Monster target = monsters.getMonsterByIndex(targetIndex);
 
-        if (monsterDodges(target)) {
+        if (monsterDodges(target)) { // monster has a chance to dodge the attack, however it's really low should probably tweak this
             System.out.println(target.getName() + " dodged " + hero.getName() + "'s attack!");
         } else {
             int dealt = target.takeDamage(hero.calculateAttackDamage());
             System.out.println(hero.getName() + " attacked " + target.getName() + " for " + dealt + " damage!");
         }
 
+        // hit or miss, every use of a weapon cause wear and tear
         Weapon broken = hero.wearDownWeapon();
         if (broken != null) {
             System.out.println(hero.getName() + "'s " + broken.getName()
@@ -207,10 +228,12 @@ public class Battle {
         return true;
     }
 
+    // inventory menu has the logic for equipping items in the hero's inventory so we can delegate
     private boolean handleHeroEquipWeapon(Hero hero) { return inventoryMenu.equipWeapon(hero); }
     private boolean handleHeroEquipArmor(Hero hero)  { return inventoryMenu.equipArmor(hero); }
     private boolean handleHeroPotionUse(Hero hero)   { return inventoryMenu.usePotion(hero); }
 
+    // the menus live in InventoryMenu so exploration can use them too
     public void awardRewards() {
         for (Hero hero : getLivingHeroes()) {
             hero.addGold(monsterLevel * 100.0);
@@ -221,7 +244,7 @@ public class Battle {
     }
 
     private void quitGame() {
-        console.quitGame(heroes);
+        console.quitGameText(heroes);
         System.exit(0);
     }
 

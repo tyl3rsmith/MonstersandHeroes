@@ -1,5 +1,13 @@
 import java.util.List;
 
+/**
+ * Market
+ * represents each unique market in the game
+ * heroes can buy, sell, and repair stuff at a market
+ * each market has a unique supply of items offered
+ * uses TransactionResult to display the different messages based on the outcome of the transaction
+ */
+
 public class Market {
     private final MarketItems inventory = new MarketItems();
 

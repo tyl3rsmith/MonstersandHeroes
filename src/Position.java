@@ -1,3 +1,8 @@
+/**
+ * Position
+ * Mainly used to manage positions across the map for the hero party
+ */
+
 public class Position {
     private final int row;
     private final int col;
@@ -6,6 +11,7 @@ public class Position {
         if (row < 0 || col < 0) {
             throw new IllegalArgumentException("invalid row or column");
         }
+
         this.row = row;
         this.col = col;
     }

@@ -1,3 +1,9 @@
+/**
+ * Abstract Item
+ * manages the shared state and behavior of all items
+ * all items are Buyable and Sellable
+ */
+
 public abstract class Item implements Buyable, Sellable {
     private final String name;
     private final double price;

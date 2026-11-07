@@ -5,10 +5,16 @@ import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 
+/**
+ * Factory Class for Generating Monsters
+ * Abstracts the logic for generating a monster so during the start of the battle, monsters are generated without needing to know how
+ */
+
 public class MonsterFactory {
     private final List<Dragon> dragons;
     private final List<Exoskeleton> exoskeletons;
     private final List<Spirit> spirits;
+
     private final Random rand = new Random();
 
     public MonsterFactory() {
@@ -17,10 +23,16 @@ public class MonsterFactory {
         this.spirits = loadSpirits("src/data/Spirits.txt");
     }
 
+    // during the battle monsters of any type are created at random w.r.t. highest hero level
     public Monster createRandomMonster(MonsterType type, int level) {
-        if (level < 1) {
-            throw new IllegalArgumentException("Level must be greater than or equal to 1");
+        if (type == null) {
+            throw new IllegalArgumentException("Monster type cannot be null.");
         }
+
+        if (level < 1) {
+            throw new IllegalArgumentException("Level must be positive.");
+        }
+
         return switch (type) {
             case DRAGON -> createDragon(level);
             case EXOSKELETON -> createExoskeleton(level);
@@ -28,17 +40,19 @@ public class MonsterFactory {
         };
     }
 
+    // selects a random monster based on any subtype of monster
     private Monster selectRandomMonster(List<? extends Monster> monsters, int level) {
         if (monsters.isEmpty()) {
-            throw new IllegalStateException("No monsters were loaded");
+            throw new IllegalStateException("No monsters were loaded.");
         }
 
-        // keep every monster tied for the closest level to the requested one
+        // Find all monsters closest to the requested level incase there are none of the exact level that match
         int bestGap = Integer.MAX_VALUE;
         List<Monster> closest = new ArrayList<>();
 
         for (Monster monster : monsters) {
             int gap = Math.abs(monster.getLevel() - level);
+
             if (gap < bestGap) {
                 bestGap = gap;
                 closest.clear();
@@ -53,24 +67,45 @@ public class MonsterFactory {
 
     private Dragon createDragon(int level) {
         Dragon selected = (Dragon) selectRandomMonster(dragons, level);
-        return new Dragon(selected.getName(), selected.getLevel(), selected.getHp(), selected.getBaseDamage(), selected.getDefense(), selected.getDodgeChance());
+
+        return new Dragon(
+                selected.getName(),
+                selected.getLevel(),
+                selected.getHp(),
+                selected.getBaseDamage(),
+                selected.getDefense(),
+                selected.getDodgeChance()
+        );
     }
 
     private Exoskeleton createExoskeleton(int level) {
         Exoskeleton selected = (Exoskeleton) selectRandomMonster(exoskeletons, level);
-        return new Exoskeleton(selected.getName(), selected.getLevel(), selected.getHp(), selected.getBaseDamage(), selected.getDefense(), selected.getDodgeChance());
+
+        return new Exoskeleton(
+                selected.getName(),
+                selected.getLevel(),
+                selected.getHp(),
+                selected.getBaseDamage(),
+                selected.getDefense(),
+                selected.getDodgeChance()
+        );
     }
 
     private Spirit createSpirit(int level) {
         Spirit selected = (Spirit) selectRandomMonster(spirits, level);
-        return new Spirit(selected.getName(), selected.getLevel(), selected.getHp(), selected.getBaseDamage(), selected.getDefense(), selected.getDodgeChance());
+
+        return new Spirit(
+                selected.getName(),
+                selected.getLevel(),
+                selected.getHp(),
+                selected.getBaseDamage(),
+                selected.getDefense(),
+                selected.getDodgeChance()
+        );
     }
 
-    // monster hp = 100 * level
+    // Monster HP = 100 * level
     private int calculateMonsterHP(int level) {
-        if (level < 1) {
-            throw new IllegalArgumentException("Level must be positive.");
-        }
         return 100 * level;
     }
 
@@ -79,7 +114,7 @@ public class MonsterFactory {
 
         try (Scanner fileScanner = new Scanner(new File(filePath))) {
             if (fileScanner.hasNextLine()) {
-                fileScanner.nextLine(); // skip header
+                fileScanner.nextLine(); // Skip header
             }
 
             while (fileScanner.hasNextLine()) {
@@ -90,11 +125,20 @@ public class MonsterFactory {
                 }
 
                 String[] attributes = line.split("\\s+");
+
+                if (attributes.length != 5) {
+                    throw new IllegalStateException(
+                            "Invalid monster data in " + filePath + ": " + line
+                    );
+                }
+
                 monsters.add(attributes);
             }
 
         } catch (FileNotFoundException e) {
-            throw new IllegalStateException("Could not find " + filePath, e);
+            throw new IllegalStateException(
+                    "Could not find " + filePath, e
+            );
         }
 
         return monsters;
@@ -110,7 +154,14 @@ public class MonsterFactory {
             int defense = Integer.parseInt(attributes[3]);
             int dodgeChance = Integer.parseInt(attributes[4]);
 
-            dragons.add(new Dragon(name, level, calculateMonsterHP(level), damage, defense, dodgeChance));
+            dragons.add(new Dragon(
+                    name,
+                    level,
+                    calculateMonsterHP(level),
+                    damage,
+                    defense,
+                    dodgeChance
+            ));
         }
 
         return dragons;
@@ -126,7 +177,14 @@ public class MonsterFactory {
             int defense = Integer.parseInt(attributes[3]);
             int dodgeChance = Integer.parseInt(attributes[4]);
 
-            exoskeletons.add(new Exoskeleton(name, level, calculateMonsterHP(level), damage, defense, dodgeChance));
+            exoskeletons.add(new Exoskeleton(
+                    name,
+                    level,
+                    calculateMonsterHP(level),
+                    damage,
+                    defense,
+                    dodgeChance
+            ));
         }
 
         return exoskeletons;
@@ -142,7 +200,14 @@ public class MonsterFactory {
             int defense = Integer.parseInt(attributes[3]);
             int dodgeChance = Integer.parseInt(attributes[4]);
 
-            spirits.add(new Spirit(name, level, calculateMonsterHP(level), damage, defense, dodgeChance));
+            spirits.add(new Spirit(
+                    name,
+                    level,
+                    calculateMonsterHP(level),
+                    damage,
+                    defense,
+                    dodgeChance
+            ));
         }
 
         return spirits;

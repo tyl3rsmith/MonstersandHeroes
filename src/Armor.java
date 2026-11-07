@@ -1,3 +1,9 @@
+/**
+ * Represents a piece of armor that a hero can equip to reduce incoming damage.
+ * Extends Gear, inheriting its name, price, level, and usage information.
+ * Implements Equipable to allow heroes to equip and unequip armor.
+ */
+
 public class Armor extends Gear implements Equipable {
     private final int damageReduction;
 
@@ -16,17 +22,17 @@ public class Armor extends Gear implements Equipable {
     }
 
     @Override
-    public Armor copy() {
+    public Armor copy() { // independent copy with the same properties
         return new Armor(getName(), getPrice(), getLevel(), damageReduction);
     }
 
     @Override
-    public void equip(Hero hero) {
+    public void equip(Hero hero) { // delegate to hero
         hero.equipArmor(this);
     }
 
     @Override
-    public void unequip(Hero hero) {
+    public void unequip(Hero hero) { // delegate to hero
         if (hero.getArmor() == this) {
             hero.unequipArmor();
         }

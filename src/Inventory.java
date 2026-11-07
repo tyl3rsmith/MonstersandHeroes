@@ -1,6 +1,11 @@
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Inventory
+ * manages the inventory of a hero
+ */
+
 public class Inventory {
     private List<Item> backpack;
 
@@ -28,6 +33,7 @@ public class Inventory {
         return backpack.get(index);
     }
 
+    // gets items of a specified class type in the heroes inventory i.e. Weapon.class gives all weapon items
     public <T extends Item> List<T> getItemsOfType(Class<T> type) {
         List<T> result = new ArrayList<>();
         for (Item item : backpack) {
@@ -38,6 +44,7 @@ public class Inventory {
         return result;
     }
 
+    // default display for inventory
     @Override
     public String toString() {
         if (backpack.isEmpty()) {

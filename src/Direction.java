@@ -1,3 +1,8 @@
+/**
+ * Used to abstract the logic for moving in different directions
+ * Position of the party is updated each direction moved
+ */
+
 public enum Direction {
     UP(-1, 0),
     DOWN(1, 0),

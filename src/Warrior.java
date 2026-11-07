@@ -1,3 +1,10 @@
+/**
+ * Used to define the type Warrior
+ * All heroes essentially reuse Parent logic
+ * The data already provides the functionality to account for favored attributes
+ * This is just useful for future extensions of Warrior
+ */
+
 public class Warrior extends Hero {
     public static final HeroType heroType = HeroType.WARRIOR;
 

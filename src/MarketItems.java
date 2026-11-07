@@ -2,6 +2,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Market Items
+ * Manages the aggregate of items a market has
+ */
+
 public class MarketItems {
     private final List<Item> marketItems;
 

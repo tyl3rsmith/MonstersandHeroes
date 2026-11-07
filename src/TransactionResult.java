@@ -1,3 +1,9 @@
+/**
+ * Transaction Result Enum
+ * Stores the messages for different transactions based on the state of tge transaction
+ * Used mainly by the Market to display information during the shopping session
+ */
+
 public enum TransactionResult {
     SUCCESS("Transaction complete!"),
     NOT_IN_STOCK("The market doesn't have that item."),
@@ -9,7 +15,11 @@ public enum TransactionResult {
 
     private final String message;
 
-    TransactionResult(String message) { this.message = message; }
+    TransactionResult(String message) {
+        this.message = message;
+    }
 
-    public String getMessage() { return message; }
+    public String getMessage() {
+        return message;
+    }
 }

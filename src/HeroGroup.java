@@ -2,9 +2,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Aggregate Group of Heroes
+ * Stores all the logic for managing heroes as a group
+ * The group must be size 1 to 3 inclusive
+ */
+
 public class HeroGroup {
-    private final List<Hero> heroes;
     public static final int MAX_HERO_GROUP_SIZE = 3;
+
+    private final List<Hero> heroes;
 
     public HeroGroup() {
         this.heroes = new ArrayList<>();
@@ -12,23 +19,25 @@ public class HeroGroup {
 
     public void addHero(Hero hero) {
         if (hero == null) {
-            throw new IllegalArgumentException("Hero cannot be null");
+            throw new IllegalArgumentException("Hero cannot be null.");
         }
 
         if (heroes.size() >= MAX_HERO_GROUP_SIZE) {
-            throw new IllegalStateException("party is full");
+            throw new IllegalStateException("Party is full.");
         }
 
         heroes.add(hero);
     }
 
     public List<Hero> getHeroes() {
-        return Collections.unmodifiableList(heroes); // read only version of hero list
+        return Collections.unmodifiableList(heroes);
     }
 
     public Hero getHeroByIndex(int index) {
         if (index < 0 || index >= heroes.size()) {
-            throw new ArrayIndexOutOfBoundsException("Invalid index provided for a Hero Group of size: " + getNumHeroes());
+            throw new IndexOutOfBoundsException(
+                    "Invalid hero index for a group of size " + getNumHeroes() + "."
+            );
         }
 
         return heroes.get(index);
@@ -38,34 +47,38 @@ public class HeroGroup {
         return heroes.size();
     }
 
-
+    // highest level hero is used to determine the level of monsters generated
     public int getHighestLevelHero() {
         if (heroes.isEmpty()) {
             return -1;
         }
 
-        int res = -1;
+        int highestLevel = 0;
+
         for (Hero hero : heroes) {
-            if (hero.getLevel() > res) {
-                res = hero.getLevel();
+            if (hero.getLevel() > highestLevel) {
+                highestLevel = hero.getLevel();
             }
         }
-        return res;
+
+        return highestLevel;
     }
 
-
+    // these are used to print out stats at the end of the game
     public int getHighestXP() {
         if (heroes.isEmpty()) {
             return -1;
         }
 
-        int res = 0;
+        int highestXP = 0;
+
         for (Hero hero : heroes) {
-            if (hero.getXp() > res) {
-                res = hero.getXp();
+            if (hero.getXp() > highestXP) {
+                highestXP = hero.getXp();
             }
         }
-        return res;
+
+        return highestXP;
     }
 
     public double getHighestGold() {
@@ -73,13 +86,15 @@ public class HeroGroup {
             return -1;
         }
 
-        double res = 0;
+        double highestGold = 0;
+
         for (Hero hero : heroes) {
-            if (hero.getMoney() > res) {
-                res = hero.getMoney();
+            if (hero.getMoney() > highestGold) {
+                highestGold = hero.getMoney();
             }
         }
-        return res;
+
+        return highestGold;
     }
 
     public double getHighestMana() {
@@ -87,42 +102,50 @@ public class HeroGroup {
             return -1;
         }
 
-        double res = 0;
+        double highestMana = 0;
+
         for (Hero hero : heroes) {
-            if (hero.getMana() > res) {
-                res = hero.getMana();
+            if (hero.getMana() > highestMana) {
+                highestMana = hero.getMana();
             }
         }
-        return res;
+
+        return highestMana;
     }
 
+    // levels up the heroes as an aggregate, each hero knows how to level themselves up so we can delegate
     public void levelUpHeroes() {
         for (Hero hero : heroes) {
             while (hero.canLevelUp()) {
                 hero.levelUp();
-                System.out.println(hero.getName() + " reached level " + hero.getLevel() + "!");
+
+                System.out.println(
+                        hero.getName() + " reached level " + hero.getLevel() + "!"
+                );
             }
         }
     }
 
+    // useful display methods showing information about the hero group during the main menu and during the battle
     public void displayHeroGroupInformation() {
         System.out.println("\n========== PARTY INFORMATION ==========");
+
         int i = 1;
+
         for (Hero hero : heroes) {
-            System.out.println("\nHero " + (i++) + ": " + hero.getOverview());
+            System.out.println("\nHero " + i++ + ": " + hero.getOverview());
             System.out.println("---------------------------------------");
         }
     }
 
     public void displayBattleInformation() {
         System.out.println("\n========== HEROES ==========");
+
         int i = 1;
+
         for (Hero hero : heroes) {
-            System.out.println("\nHero " + (i++) + ": " + hero.getBattleSummary());
+            System.out.println("\nHero " + i++ + ": " + hero.getBattleSummary());
             System.out.println("---------------------------------------");
         }
     }
-
-
-
 }

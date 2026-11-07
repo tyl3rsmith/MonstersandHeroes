@@ -1,3 +1,10 @@
+/**
+ * Used to define the type Sorcerer
+ * All heroes essentially reuse Parent logic
+ * The data already provides the functionality to account for favored attributes
+ * This is just useful for future extensions of Sorcerer
+ */
+
 public class Sorcerer extends Hero {
     public static final HeroType heroType = HeroType.SORCERER;
 

@@ -1,19 +1,23 @@
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Scanner;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
+
+/**
+ * Controller is the game's only console interface. It prints menus and screens and reads and validates player input.
+ * It contains no game rules and does no file reading: the game loop, battle, market, and inventory classes decide what happens,
+ * HeroFactory supplies the heroes to choose from, and Controller only asks the player and returns the answer.
+ */
 
 public class Controller {
     private final Scanner scanner = new Scanner(System.in);
+    private final HeroFactory heroFactory;
 
-    // ------------------------------------------------------------------
+    public Controller(HeroFactory heroFactory) {
+        this.heroFactory = heroFactory;
+    }
+
+    // 1.
     // Input helpers: every read goes through nextLine(), so no newline is
     // ever left behind in the buffer and empty input can't crash charAt(0).
-    // ------------------------------------------------------------------
 
     // returns the first character of a non-empty line, uppercased
     private char readChar() {
@@ -36,7 +40,7 @@ public class Controller {
         return choice;
     }
 
-    // returns an int in [min, max], re-prompting on bad input
+    // returns an int in min, max inclusive, re-prompting until a valid input is given
     private int readInt(int min, int max) {
         while (true) {
             String line = scanner.nextLine().trim();
@@ -46,15 +50,15 @@ public class Controller {
                     return value;
                 }
             } catch (NumberFormatException ignored) {
-                // not a number, fall through to the re-prompt
+                // needed incase a number isn't given and this exception is thrown
+                // simply just handled by reprompting until a valid number is given
             }
             System.out.print("Enter a number between " + min + " and " + max + ": ");
         }
     }
 
-    // ------------------------------------------------------------------
+    // 2.
     // Welcome / setup
-    // ------------------------------------------------------------------
 
     public void displayWelcome() {
         System.out.println("==============================================");
@@ -70,29 +74,47 @@ public class Controller {
         System.out.println("YOUR OBJECTIVE:");
         System.out.println("Explore the world with your party of heroes,");
         System.out.println("defeat monsters, earn gold and experience,");
-        System.out.println("purchase powerful items, and grow stronger.");
+        System.out.println("buy powerful items, and level up as far as you can.");
         System.out.println();
-        System.out.println("HOW TO PLAY:");
+        System.out.println("EXPLORING (type a letter, then press Enter):");
         System.out.println("  W - Move up");
         System.out.println("  A - Move left");
         System.out.println("  S - Move down");
         System.out.println("  D - Move right");
         System.out.println("  I - View hero information");
+        System.out.println("  V - Manage inventory (equip gear, use potions)");
         System.out.println("  M - Enter a market (when on a market space)");
-        System.out.println("  Q - Quit the game");
+        System.out.println("  Q - Quit the game (works at any time)");
         System.out.println();
         System.out.println("THE WORLD:");
-        System.out.println("  [ ] Common space: You may encounter monsters.");
-        System.out.println("  [M] Market: Buy and sell items.");
+        System.out.println("  [ ] Common space: You may run into monsters.");
+        System.out.println("  [M] Market: Buy, sell, and repair items.");
         System.out.println("  [X] Inaccessible: You cannot enter these spaces.");
         System.out.println("  [P] Your party's current location.");
         System.out.println();
         System.out.println("BATTLES:");
-        System.out.println("  Your heroes fight monsters in turn-based battles.");
-        System.out.println("  Attack, cast spells, use potions, and equip gear");
-        System.out.println("  to defeat your enemies.");
-        System.out.println("  Victories reward gold and experience.");
-        System.out.println("  Be careful! If all your heroes faint, the game ends.");
+        System.out.println("  Every hero acts, then every monster acts, until one side is out.");
+        System.out.println("  On a hero's turn:");
+        System.out.println("    A - Attack with the equipped weapon (bare fists if none)");
+        System.out.println("    S - Cast a spell (uses mana, and the spell is used up)");
+        System.out.println("    P - Use a potion (used up)");
+        System.out.println("    W / E - Equip a weapon / a piece of armor");
+        System.out.println("    I - Show statistics     M - Show the map     Q - Quit");
+        System.out.println("  Looking at statistics or the map does not use up your turn.");
+        System.out.println("  Heroes and monsters can dodge. Armor reduces damage taken.");
+        System.out.println("  A hero who faints sits out the battle. If you win, they come");
+        System.out.println("  back with half their health and mana, but earn no rewards.");
+        System.out.println("  If every hero faints, the game is over.");
+        System.out.println();
+        System.out.println("MARKETS AND GEAR:");
+        System.out.println("  Each hero has their own gold and backpack.");
+        System.out.println("  B - Buy (you need enough gold and a high enough level)");
+        System.out.println("  S - Sell (you get half the price back)");
+        System.out.println("  R - Repair (half the price)");
+        System.out.println("  Weapons and armor wear out. A broken piece is unequipped and");
+        System.out.println("  must be repaired before it can be used again.");
+        System.out.println("  Gear must be unequipped (inventory menu) before it can be");
+        System.out.println("  sold or repaired.");
         System.out.println();
         System.out.println("Good luck, adventurer. Your legend awaits!");
         System.out.println("==============================================");
@@ -110,10 +132,10 @@ public class Controller {
         return readInt(1, HeroGroup.MAX_HERO_GROUP_SIZE);
     }
 
-    // ------------------------------------------------------------------
-    // Exploration
-    // ------------------------------------------------------------------
+    // 3.
+    // Exploration/Movement and Hero
 
+    // Main action prompt used in the game when user is moving around the board
     public char getKeyPress() {
         System.out.println("Enter a command:");
         System.out.println("  W - Move up");
@@ -129,162 +151,25 @@ public class Controller {
         return readChoice("WASDIMQV", "Enter one of: W, A, S, D, I, M, V, Q: ");
     }
 
-    // ------------------------------------------------------------------
-    // Hero selection
-    // ------------------------------------------------------------------
+    // helper method for choosing heroes when forming a hero group
+    private Hero chooseHero(HeroType type, Set<String> selectedNames) {
+        List<Hero> options = heroFactory.getAvailableHeroes(type, selectedNames);
+        String label = type.name().toLowerCase();
 
-    private String[] displayHeroOptions(String filePath, String heroType, Set<String> selectedNames) {
-        List<String[]> availableHeroes = createAvailableHeroes(filePath, selectedNames);
-
-        if (availableHeroes.isEmpty()) {
-            System.out.println("No more available " + heroType + "s.");
+        if (options.isEmpty()) {
+            System.out.println("No more available " + label + "s.");
             return null;
         }
 
-        System.out.println("\n========== " + heroType.toUpperCase() + " OPTIONS ==========");
-
-        for (int i = 0; i < availableHeroes.size(); i++) {
-            String[] attributes = availableHeroes.get(i);
-            String name = attributes[0].replace("_", " ");
-
-            System.out.println((i + 1) + ". " + name);
-            System.out.println(
-                    "   Mana: " + attributes[1]
-                            + " | Strength: " + attributes[2]
-                            + " | Agility: " + attributes[3]
-                            + " | Dexterity: " + attributes[4]
-                            + " | Starting Gold: " + attributes[5]
-                            + " | Starting XP: " + attributes[6]
-            );
-            System.out.println();
-        }
-
-        System.out.print("Enter your choice (1 to " + availableHeroes.size() + "): ");
-        int heroChoice = readInt(1, availableHeroes.size());
-
-        return availableHeroes.get(heroChoice - 1);
+        return selectItem("\n========== " + type.name() + " OPTIONS ==========", options,
+                h -> h.getName()
+                        + " | Mana: " + (int) h.getMana()
+                        + " | Strength: " + (int) h.getStrength()
+                        + " | Agility: " + (int) h.getAgility()
+                        + " | Dexterity: " + (int) h.getDexterity()
+                        + " | Starting Gold: " + (int) h.getMoney()
+                        + " | Starting XP: " + h.getXp());
     }
-
-    private static List<String[]> createAvailableHeroes(String filePath, Set<String> selectedNames) {
-        List<String[]> availableHeroes = new ArrayList<>();
-
-        try (Scanner fileScanner = new Scanner(new File(filePath))) {
-            // Skip the header.
-            if (fileScanner.hasNextLine()) {
-                fileScanner.nextLine();
-            }
-
-            while (fileScanner.hasNextLine()) {
-                String line = fileScanner.nextLine().trim();
-
-                if (line.isEmpty()) {
-                    continue;
-                }
-
-                String[] attributes = line.split("\\s+");
-                String name = attributes[0].replace("_", " ");
-
-                // Skip heroes that have already been selected.
-                if (selectedNames.contains(name)) {
-                    continue;
-                }
-
-                availableHeroes.add(attributes);
-            }
-        } catch (FileNotFoundException e) {
-            throw new IllegalStateException("Could not find " + filePath, e);
-        }
-        return availableHeroes;
-    }
-
-    public Sorcerer displaySorcererOptions(Set<String> selectedNames) {
-        String[] attributes = displayHeroOptions("src/data/Sorcerers.txt", "Sorcerer", selectedNames);
-
-        if (attributes == null) {
-            return null;
-        }
-
-        return new Sorcerer(
-                attributes[0].replace("_", " "),
-                Integer.parseInt(attributes[1]),
-                Integer.parseInt(attributes[2]),
-                Integer.parseInt(attributes[3]),
-                Integer.parseInt(attributes[4]),
-                Integer.parseInt(attributes[5]),
-                Integer.parseInt(attributes[6])
-        );
-    }
-
-    public Paladin displayPaladinOptions(Set<String> selectedNames) {
-        String[] attributes = displayHeroOptions("src/data/Paladins.txt", "Paladin", selectedNames);
-
-        if (attributes == null) {
-            return null;
-        }
-
-        return new Paladin(
-                attributes[0].replace("_", " "),
-                Integer.parseInt(attributes[1]),
-                Integer.parseInt(attributes[2]),
-                Integer.parseInt(attributes[3]),
-                Integer.parseInt(attributes[4]),
-                Integer.parseInt(attributes[5]),
-                Integer.parseInt(attributes[6])
-        );
-    }
-
-    public Warrior displayWarriorOptions(Set<String> selectedNames) {
-        String[] attributes = displayHeroOptions("src/data/Warriors.txt", "Warrior", selectedNames);
-
-        if (attributes == null) {
-            return null;
-        }
-
-        return new Warrior(
-                attributes[0].replace("_", " "),
-                Integer.parseInt(attributes[1]),
-                Integer.parseInt(attributes[2]),
-                Integer.parseInt(attributes[3]),
-                Integer.parseInt(attributes[4]),
-                Integer.parseInt(attributes[5]),
-                Integer.parseInt(attributes[6])
-        );
-    }
-
-    public List<Hero> selectHero(int heroCount) {
-        List<Hero> selectedHeroes = new ArrayList<>();
-        Set<String> selectedNames = new HashSet<>();
-
-        for (int i = 0; i < heroCount; i++) {
-            System.out.println("\nSelect a hero type:");
-            System.out.println("W - Warrior");
-            System.out.println("S - Sorcerer");
-            System.out.println("P - Paladin");
-
-            char heroChoice = readChoice("WSP", "Invalid choice. Enter W, S, or P:");
-
-            Hero selectedHero = switch (heroChoice) {
-                case 'W' -> displayWarriorOptions(selectedNames);
-                case 'S' -> displaySorcererOptions(selectedNames);
-                case 'P' -> displayPaladinOptions(selectedNames);
-                default -> null;
-            };
-
-            if (selectedHero != null) {
-                selectedHeroes.add(selectedHero);
-                selectedNames.add(selectedHero.getName());
-            } else {
-                // Let the user retry this hero selection.
-                i--;
-            }
-        }
-
-        return selectedHeroes;
-    }
-
-    // ------------------------------------------------------------------
-    // Battle
-    // ------------------------------------------------------------------
 
     // returns the zero-based index of the chosen hero, or -1 if the party is empty
     public int selectHero(HeroGroup party) {
@@ -297,6 +182,44 @@ public class Controller {
         return readInt(1, party.getNumHeroes()) - 1;
     }
 
+    // main method used to form the hero group
+    public List<Hero> selectHero(int heroCount) {
+        List<Hero> selectedHeroes = new ArrayList<>();
+        Set<String> selectedNames = new HashSet<>(); // needed so heroes are unique
+
+        for (int i = 0; i < heroCount; i++) {
+            System.out.println("\nSelect a hero type:");
+            System.out.println("W - Warrior");
+            System.out.println("S - Sorcerer");
+            System.out.println("P - Paladin");
+
+            char heroChoice = readChoice("WSP", "Invalid choice. Enter W, S, or P:");
+
+            HeroType type = switch (heroChoice) {
+                case 'W' -> HeroType.WARRIOR;
+                case 'S' -> HeroType.SORCERER;
+                case 'P' -> HeroType.PALADIN;
+                default -> throw new IllegalStateException("Unexpected hero choice: " + heroChoice);
+            };
+
+            Hero selectedHero = chooseHero(type, selectedNames);
+
+            if (selectedHero != null) {
+                selectedHeroes.add(selectedHero);
+                selectedNames.add(selectedHero.getName());
+            } else {
+                // cancelled, or no heroes of that type left player must pick a type again
+                i--;
+            }
+        }
+
+        return selectedHeroes;
+    }
+
+    // 4.
+    // Battle
+
+    // main method for getting a hero's choice of action during a battle
     public char getHeroBattleChoice(Hero hero) {
         System.out.println("\n========== HEROES TURN ==========");
         System.out.println("Enter a command:");
@@ -323,6 +246,7 @@ public class Controller {
         return readInt(1, monsters.getNumMonsters()) - 1;
     }
 
+    // displays stats for monster or hero depending on the user's choice
     public void statistics(MonsterGroup monsterGroup, HeroGroup heroGroup) {
         System.out.println("Would you like to see monster or hero statistics?");
         System.out.println("Enter 'M' for Monster or 'H' for Hero Statistics");
@@ -340,12 +264,10 @@ public class Controller {
         }
     }
 
-    // ------------------------------------------------------------------
-    // Market / game over
-    // ------------------------------------------------------------------
+    // 5.
+    // Market
 
-    // Only displays the stock for now; buying, selling, and reading the
-    // player's choice still need to be added.
+    // Main menu displayed while a hero is shopping at a market, repeats until they leave i.e. enter 'L'
     public void displayMarketMenu(Hero hero, Market market) {
         System.out.println("\nWelcome to the market " + hero.getName() + "!");
 
@@ -353,7 +275,6 @@ public class Controller {
         while (shopping) {
             System.out.println("\n" + hero.getName() + " | Level " + hero.getLevel()
                     + " | Gold: " + (int) hero.getMoney());
-            System.out.println("  B - Buy   S - Sell   L - Leave");
 
             System.out.println("  B - Buy   S - Sell   R - Repair   L - Leave");
 
@@ -366,6 +287,7 @@ public class Controller {
         }
     }
 
+    // Repair prompt: only prints prompt for items which are damaged
     private void handleRepair(Hero hero, Market market) {
         List<Gear> damaged = new ArrayList<>();
         for (Gear gear : hero.getBackpack().getItemsOfType(Gear.class)) {
@@ -387,6 +309,7 @@ public class Controller {
         }
     }
 
+    // gets all items a market has, and prompts a hero to choose the item they want to buy
     private void handleBuy(Hero hero, Market market) {
         List<Item> stock = market.getMarketItems().getInventory();
         if (stock.isEmpty()) {
@@ -400,6 +323,7 @@ public class Controller {
         }
     }
 
+    // gets all items a hero has, and prompts them to select the item they want to sell
     private void handleSell(Hero hero, Market market) {
         List<Item> owned = hero.getBackpack().getItemsOfType(Item.class);
         if (owned.isEmpty()) {
@@ -414,12 +338,17 @@ public class Controller {
         }
     }
 
+    // 6.
+    // End of Game
+
+    // prints when heroes lose the game
     public void showGameOver(HeroGroup heroes) {
         System.out.println("\nAll heroes have fainted!");
-        quitGame(heroes);
+        quitGameText(heroes);
     }
 
-    public void quitGame(HeroGroup heroes) {
+    // text displayed when user decides to quit, just displaying some stats achieved
+    public void quitGameText(HeroGroup heroes) {
         System.out.println("\n========== GAME OVER ==========");
         System.out.println("Highest Level Achieved: " + heroes.getHighestLevelHero());
         System.out.println("Highest XP Achieved: " + heroes.getHighestXP());
@@ -428,26 +357,46 @@ public class Controller {
         System.out.println("================================");
     }
 
+    // reusable (Y/N) prompt
     public boolean askYesNo(String question) {
         System.out.print(question + " (Y/N): ");
         return readChoice("YN", "Enter Y or N:") == 'Y';
     }
 
+    // 7.
+    // Item Selection Helpers
+
+    // reusable prompt to display a list of items for a user to pick from
+    // can be any generic type
+    // label a function that converts each item into a String for display
     public <T> T selectItem(String prompt, List<T> items, Function<T, String> label) {
+        // Display the message explaining what the user is choosing
         System.out.println(prompt);
+
+        // Display each item with a number next to it
+        // The label function determines how each item is shown to the user
         for (int i = 0; i < items.size(); i++) {
             System.out.println((i + 1) + ". " + label.apply(items.get(i)));
         }
+
+        // Give the user the option to cancel without selecting anything.
         System.out.println("0. Cancel");
 
+        // Read the user's choice and make sure it is within the available range.
         int choice = readInt(0, items.size());
+
+        // Return null if the user cancels if they dont cancel return the selected item.
         return choice == 0 ? null : items.get(choice - 1);
     }
 
+    // reuses the prior method above so we dont need to repeat the logic
+    // String::valueOf converts each item into a String for display.
+    // Used when we dont care about customizing how an item is display just uses default
     public <T> T selectItem(String prompt, List<T> items) {
         return selectItem(prompt, items, String::valueOf);
     }
 
+    // main prompt for inventory actions
     public char getInventoryChoice(Hero hero) {
         System.out.println("\n========== " + hero.getName().toUpperCase() + "'S INVENTORY ==========");
         System.out.println("  W - Equip a weapon");
