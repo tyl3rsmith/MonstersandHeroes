@@ -1,0 +1,3 @@
+public enum HeroAttribute {
+    HEALTH, MANA, STRENGTH, DEXTERITY, AGILITY, DEFENSE
+}
